@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: cities
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./conf/db/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - shared-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+     
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  shared-data:

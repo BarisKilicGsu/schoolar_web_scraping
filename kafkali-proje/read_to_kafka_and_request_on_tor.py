@@ -1,22 +1,24 @@
+import requests
+from fake_useragent import UserAgent
+from stem import Signal
+from stem.control import Controller
 import ijson
-from config import settings
 import json
 from unidecode import unidecode
 import random
-from playsound import playsound
 import psycopg2
 from psycopg2 import sql
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 import time
 from fake_useragent import UserAgent
 
+
+proxies = {
+    'http': 'socks5://127.0.0.1:9050',
+    'https': 'socks5://127.0.0.1:9050'
+}
 
 
 def postgres_connect(database, user, password, host, port):
@@ -41,7 +43,7 @@ def upsert_user(conn, name, google_scholar_code, is_found):
     cursor = conn.cursor()
     try:
         # Verilen ORCID'yi kontrol et
-        query = sql.SQL("SELECT * FROM users3 WHERE google_scholar_code = {}").format(sql.Literal(google_scholar_code))
+        query = sql.SQL("SELECT * FROM users WHERE google_scholar_code = {}").format(sql.Literal(google_scholar_code))
         cursor.execute(query)
         existing_user = cursor.fetchone()
         profile_url = ""
@@ -49,7 +51,7 @@ def upsert_user(conn, name, google_scholar_code, is_found):
             profile_url = build_parameterized_url("https://scholar.google.com/citations",{"user":google_scholar_code,"hl":"tr","pagesize":10000,"cstart":0} )
         if existing_user:
             # ORCID zaten var, kullanıcıyı güncelle
-            query = sql.SQL("UPDATE users3 SET name = {},  profile_url = {}, is_found = {} WHERE google_scholar_code = {} RETURNING id").format(
+            query = sql.SQL("UPDATE users SET name = {},  profile_url = {}, is_found = {} WHERE google_scholar_code = {} RETURNING id").format(
                                 sql.Literal(name),
                                 sql.Literal(profile_url),
                                 sql.Literal(is_found),
@@ -63,7 +65,7 @@ def upsert_user(conn, name, google_scholar_code, is_found):
                 return updated_user_id[0]
         else:
             # ORCID yok, yeni kullanıcı ekle
-            query = sql.SQL("INSERT INTO users3 ( name, google_scholar_code,profile_url, is_found) VALUES ( {}, {},{}, {}) RETURNING id").format(
+            query = sql.SQL("INSERT INTO users ( name, google_scholar_code,profile_url, is_found) VALUES ( {}, {},{}, {}) RETURNING id").format(
                                 sql.Literal(name),
                                 sql.Literal(google_scholar_code),
                                 sql.Literal(profile_url),
@@ -95,7 +97,7 @@ def user_is_exist_with_name(conn, name):
 
     try:
         # Verilen ORCID'yi kontrol et
-        query = sql.SQL("SELECT * FROM users3 WHERE name = {} ").format(sql.Literal(name))
+        query = sql.SQL("SELECT * FROM users WHERE name = {} ").format(sql.Literal(name))
         cursor.execute(query)
         existing_user = cursor.fetchone()
 
@@ -112,24 +114,6 @@ def user_is_exist_with_name(conn, name):
         # Bağlantıyı kapat
         cursor.close()
 
-
-class DriverManager:
-    def __init__(self):
-        self.driver = self.setup()
-
-    def setup(self):
-        options = Options()
-        #options.add_argument('--headless')
-
-        # specifies the path to the chromedriver.exe
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-        return driver
-
-    def refresh_driver(self):
-        self.driver.quit()
-        time.sleep(2)
-        self.driver = self.setup()
 
 def random_bekleme():
     return
@@ -153,32 +137,8 @@ ses_dosyasi = "uyari_ses.mp3"
 
 
 def bulunan_kullanici_islemleri(conn , isim, code):
+    print(f'bulundu ------------>{isim} {code}')
     user_id = upsert_user(conn, isim, code, True )
-
-
-class SessionManager:
-    def __init__(self):
-        self.session = requests.Session()
-
-    def save_session(self, response):
-        # Önceki oturumu sakla
-        self.saved_cookies = response.cookies.get_dict()
-
-    def load_session(self):
-        # Önceki oturumu yükle
-        if hasattr(self, 'saved_cookies'):
-            self.session.cookies.update(self.saved_cookies)
-            return self.saved_cookies
-        else:
-            return ""
-
-    def reset_session(self):
-        # Oturumu sıfırla (çerezleri temizle)
-        self.session.cookies.clear()
-        if hasattr(self, 'saved_cookies'):
-            delattr(self, 'saved_cookies')
-
-session_manager = SessionManager()
 
 
 def orcid_user_control(orcid: str):
@@ -186,8 +146,6 @@ def orcid_user_control(orcid: str):
         random_bekleme()
 
         url = f"https://pub.orcid.org/v3.0/expanded-search/?q=orcid%3A{orcid}&start=0&rows=50"
-        ua = UserAgent()
-        payload = {}
         headers = {
         'Sec-Fetch-Site': 'same-site',
         'Accept': 'application/json',
@@ -196,16 +154,13 @@ def orcid_user_control(orcid: str):
         'Accept-Language': 'en-US,en;q=0.9',
         'Sec-Fetch-Mode': 'cors',
         'Host': 'pub.orcid.org',
-        'User-Agent': ua.random,
+        'User-Agent': UserAgent().random,
         'Referer': 'https://orcid.org/',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
         }
 
-        response = requests.request("GET", url, headers=headers, data=payload)
-        session_manager.save_session(response)
-        print(response.text)
-
+        response = requests.request('GET',url, proxies=proxies, headers=headers)
         if response.status_code == 200:
             json_data = response.json()
             if json_data.get("expanded-result", []) == None:
@@ -223,28 +178,43 @@ def orcid_user_control(orcid: str):
 
 
 
-def find_lecturer_code(name:str, driverManager):
+def find_lecturer_code(name:str):
     try:
         random_bekleme()
         users = {}
         url = build_parameterized_url("https://scholar.google.com/citations",{"mauthors":name,"hl":"tr","view_op":"search_authors","btnG":""})
-        driverManager.driver.get(url)
-        time.sleep(2)
-        soup = BeautifulSoup(driverManager.driver.page_source, 'html.parser')
+        headers = { 'User-Agent': UserAgent().random,
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    }
+    
+        response = requests.request('GET',url, proxies=proxies, headers=headers)
+
+        if response.status_code == 403:
+            while True: 
+                print('403 aldim yeniden deniyorum')
+                with Controller.from_port(port = 9051) as c:
+                    c.authenticate(password = "1805Sila")
+                    c.signal(Signal.NEWNYM)
+                headers = { 'User-Agent': UserAgent().random }
+                print(f"Your IP is : {requests.request('GET','https://ident.me', proxies=proxies, headers=headers).text}")
+                response = requests.request('GET',url, proxies=proxies, headers=headers)
+                if response.status_code == 403:
+                    continue
+                if response.status_code != 200:
+                    return None
+                break
+        if response.status_code != 200:
+            return None
+
+        soup = BeautifulSoup(response.text, 'html.parser')
         if "but your computer or network may be sending automated queries. To protect our users, we can't proc" in soup.get_text():
-            driverManager.refresh_driver()
-            driverManager.driver.get(url)
-            soup = BeautifulSoup(driverManager.driver.page_source, "html.parser")
+            print('hata 1 +--------')
         if "Lütfen bir robot olmadığınızı gösterin" in soup.get_text() or "Sistemimiz, bilgisayar ağınızdan gelen sıra dışı bir trafik algıladı" in soup.get_text() or "I'm not a robot" in soup.get_text() :
-            playsound(ses_dosyasi)
             print("Lütfen bir robot olmadığınızı gösterin")
-            user_input = input("Enter 'y' to continue: ")
-            if user_input.lower() != "y":
-                print("Exiting due to user input.")
-                return
-            driverManager.driver.get(url)
-            soup = BeautifulSoup(driverManager.driver.page_source, "html.parser")
-        
+            return
+            
         # h3 etiketlerini topla, bu user ismi ve linkine değer olucak
         h3_tags = soup.find_all('h3', {'class': 'gs_ai_name'})
         i = 0
@@ -280,45 +250,61 @@ def are_strings_equal_case_insensitive_and_no_whitespace(str1, str2):
 
 
 def main():
-    playsound(ses_dosyasi)
-    file_path = 'files/all.json'
+    file_path = '../files/all.json'
 
-    db_connection = postgres_connect(settings.POSTGRES_DB, settings.POSTGRES_USER, settings.POSTGRES_PASSWORD, settings.POSTGRES_HOST, settings.POSTGRES_PORT)
-    driverManager = DriverManager()
+    db_connection = postgres_connect('cities','admin', 'admin', 'localhost', '5433')
     sayac = 0
     pass_value = True
+    saayc2 = 0
     with open(file_path, "rb") as f:
         for record in ijson.items(f, "item"): 
             sayac += 1
             if record["Ad Soyad"] == None or record["Ad Soyad"] == "":
                 continue
-
+            if record["Temel Alan"] == None or record["Temel Alan"] == "":
+                continue
+            if "mühendis" not in record["Temel Alan"].lower():
+                continue
+            
+            
             if pass_value:
-                if are_strings_equal_or_include_case_insensitive_and_no_whitespace("", record["Ad Soyad"]):
+                if are_strings_equal_or_include_case_insensitive_and_no_whitespace("Sedat ÖZCAN", record["Ad Soyad"]):
                     pass_value = False
                 print(f"-->{sayac}")
                 continue
             
-            users = find_lecturer_code(record["Ad Soyad"], driverManager)
+            # ip degiostir
+            if saayc2 > 35:
+                with Controller.from_port(port = 9051) as c:
+                    c.authenticate(password = "1805Sila")
+                    c.signal(Signal.NEWNYM)
+                saayc2 = 0
+                headers = { 'User-Agent': UserAgent().random }
+                print(f"Your IP is : {requests.request('GET','https://ident.me', proxies=proxies, headers=headers).text}")
+            else:
+                saayc2 += 1
 
+
+            print(f'------------>{record["Ad Soyad"]}')
+
+            users = find_lecturer_code(record["Ad Soyad"])
+            if users == None:
+                continue
             if len(users) == 0:
 
                 if record["ORCID"] == None or record["ORCID"] == "":
-                    print("-------------> Kullanıcı bulunamadı hata, kullanıcı adı: " ,record["Ad Soyad"])
                     continue
 
                 # olası ismi orciden bul 
                 olasi_isim = orcid_user_control(record["ORCID"])
                 # olasi isim orciden bulunamadıysa geç
-                print(f"olasi isim = {olasi_isim}")
                 if olasi_isim == None or are_strings_equal_case_insensitive_and_no_whitespace(olasi_isim,record["Ad Soyad"] ):
-                    print("-------------> olasi isim bulunamadı, Kullanıcı bulunamadı hata, kullanıcı adı: " ,record["Ad Soyad"])
                     continue
 
                 # olasi ismi dene
                 else:
                     random_bekleme()
-                    olasi_users = find_lecturer_code(olasi_isim, driverManager)
+                    olasi_users = find_lecturer_code(olasi_isim)
                     #olasi isimle de bulunamadı
                     if olasi_users == None:
                         continue

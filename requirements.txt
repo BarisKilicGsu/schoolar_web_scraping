@@ -1,0 +1,4 @@
+pysocks
+torpy
+requests
+fake_useragent

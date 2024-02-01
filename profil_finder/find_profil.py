@@ -1,5 +1,5 @@
-from utils import *
-from db import *
+from utils2 import *
+from db2 import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 

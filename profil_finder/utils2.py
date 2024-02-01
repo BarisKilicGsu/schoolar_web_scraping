@@ -90,10 +90,8 @@ def change_ip():
     with Controller.from_port(port = 9051) as c:
         c.authenticate(password = "1805Sila")
         c.signal(Signal.NEWNYM)
-
-    '''
+    
     headers = { 'User-Agent': UserAgent().random }
     print(f"Your IP is : {requests.request('GET','https://ident.me', proxies=proxies, headers=headers).text}")
-    response = requests.request('GET',url, proxies=proxies, headers=headers)
-    '''
+    
   

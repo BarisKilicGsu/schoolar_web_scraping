@@ -38,7 +38,7 @@ def get_response_change_ip_if_necessary(url, headers):
     #---------------------------
     response = requests.request('GET',url, proxies=proxies, headers=headers)
 
-    if response.status_code == 403  or response.status_code == 404:
+    if response.status_code == 403 :
         print(f"\n403 status kod: \nurl = {url} \nYeniden ip veriliyor\n")
         while(True):
             if counter < 1:
@@ -48,11 +48,11 @@ def get_response_change_ip_if_necessary(url, headers):
             counter -= 1
             #---------------------------
             response = requests.request('GET',url, proxies=proxies, headers=headers)
-            if response.status_code == 403 or response.status_code == 404:
+            if response.status_code == 403 :
                 print(f"\n010!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 continue
             elif response.status_code != 200:
-                print(f"\n22!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n93!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Body  = {response.text} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             else:
                 # yeni ip çek ve bastır
@@ -73,10 +73,10 @@ def get_response_change_ip_if_necessary(url, headers):
             counter -= 1
             #---------------------------
             response = requests.request('GET',url, proxies=proxies, headers=headers)
-            if response.status_code == 403 or response.status_code == 404:
+            if response.status_code == 403:
                 continue
             elif response.status_code != 200:
-                print(f"\n55!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n55!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Body = {response.text} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             else:
                 # yeni ip çek ve bastır

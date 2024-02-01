@@ -8,11 +8,19 @@ from fake_useragent import UserAgent
 def find_profil_detail(code:str):
     try:
         url = build_parameterized_url("https://scholar.google.com/citations",{"user":code,"hl":"tr","pagesize":10000,"cstart":0} )
-        headers = { 'User-Agent': UserAgent().random,
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.5',
-                    'Accept-Encoding': 'gzip, deflate, br',
-                    }
+
+        headers = {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Sec-Fetch-Site': 'none',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Sec-Fetch-Mode': 'navigate',
+        'Host': 'scholar.google.com',
+        'User-Agent': UserAgent().random,
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Sec-Fetch-Dest': 'document',
+        'Connection': 'keep-alive'
+        }
+
         soup = get_response_change_ip_if_necessary(url,headers)
         if soup == None:
             return None

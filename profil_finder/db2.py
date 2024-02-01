@@ -14,7 +14,7 @@ def postgres_connect(database, user, password, host, port):
         print("Bağlantı başarılı.")
         return connection
     except Exception as e:
-        print(f"Hata: {e}")
+        print(f"Hata 9314s: {e}")
         return None
 
 def upsert_makale(conn, user_id,article):
@@ -60,7 +60,7 @@ def upsert_makale(conn, user_id,article):
 
         # Değişiklikleri kaydet
     except Exception as e:
-        print("Hata:", e)
+        print("Hata 6341:", e)
         conn.rollback()
         return None
 
@@ -92,7 +92,7 @@ def insert_makale_just_tr_tag(conn, user_id, tr_tag):
 
         # Değişiklikleri kaydet
     except Exception as e:
-        print("Hata:", e)
+        print("Hata 5783:", e)
         conn.rollback()
         return None
 
@@ -118,7 +118,7 @@ def user_is_exist_with_name(conn, name):
             return False
 
     except Exception as e:
-        print("Hata:", e)
+        print("Hata 2375:", e)
         return False
 
     finally:
@@ -134,11 +134,11 @@ def get_first_unprocessed_user(conn):
         cursor.execute(query)
         row = cursor.fetchone()
         # Veritabanı bağlantısını kapat
-        conn.close()
+        cursor.close()
         # İlk kaydı döndür
         return row
     except Exception as e:
-        print("Hata oluştu:", e)
+        print("Hata oluştu 456:", e)
         return None
     
 def set_processed_status_for_user(conn, user_id):
@@ -152,7 +152,7 @@ def set_processed_status_for_user(conn, user_id):
         # Veritabanı değişikliklerini kaydet
         conn.commit()
         # Veritabanı bağlantısını kapat
-        conn.close()
+        cursor.close()
         print(f"Kullanıcı ID {user_id} işlenmiş olarak işaretlendi.")
     except Exception as e:
-        print("Hata oluştu:", e)
+        print("Hata oluştu 245:", e)

@@ -23,7 +23,7 @@ def find_profil_detail(code:str):
         return tr_tags
     
     except Exception as e:
-        print(f'Hata oluştu: {e}')
+        print(f'Hata oluştu 214: {e}')
         return None
    
 def parse_gsc_a_tr_class(html):
@@ -89,7 +89,7 @@ def main():
             print("İşlenmemiş kullanıcı:", user)
             tr_tags = find_profil_detail(user[3])
             for tr_tag in tr_tags:
-                insert_makale_just_tr_tag(conn , user[0], tr_tag )
+                insert_makale_just_tr_tag(conn , user[0], str(tr_tag) )
             set_processed_status_for_user(conn, user[0])  # İlk sütun ID sütunu varsayıldı
         else:
             print("İşlenmemiş kullanıcı bulunamadı.")

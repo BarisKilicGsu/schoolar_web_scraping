@@ -82,11 +82,18 @@ def main():
 
     conn = postgres_connect("cities","admin","admin","localhost","5433")
 
-
+    sayac = 0
     while True:
         user = get_first_unprocessed_user(conn)
+        if sayac > 35:
+            change_ip()
+            print("ip changed")
+            sayac = 0
+        else:
+            sayac += 1
+
         if user:
-            print("İşlenmemiş kullanıcı:", user)
+            print("İşlenmemiş kullanıcı:", user[0])
             tr_tags = find_profil_detail(user[3])
             for tr_tag in tr_tags:
                 insert_makale_just_tr_tag(conn , user[0], str(tr_tag) )

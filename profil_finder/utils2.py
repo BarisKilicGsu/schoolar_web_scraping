@@ -38,26 +38,27 @@ def get_response_change_ip_if_necessary(url, headers):
     #---------------------------
     response = requests.request('GET',url, proxies=proxies, headers=headers)
 
-    if response.status_code == 403:
+    if response.status_code == 403  or response.status_code == 404:
         print(f"\n403 status kod: \nurl = {url} \nYeniden ip veriliyor\n")
         while(True):
             if counter < 1:
-                print(f"\n!!!!!!!!! Yeniden Deneme Sınırı Doldu !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n11!!!!!!!!! Yeniden Deneme Sınırı Doldu !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             change_ip()
             counter -= 1
             #---------------------------
             response = requests.request('GET',url, proxies=proxies, headers=headers)
-            if response.status_code == 403:
+            if response.status_code == 403 or response.status_code == 404:
+                print("yeniden denniyor")
                 continue
             elif response.status_code != 200:
-                print(f"\n!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n22!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             else:
                 # yeni ip çek ve bastır
                 break
     elif response.status_code != 200:
-        print(f"\n!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+        print(f"\n33!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
         return None
     
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -66,16 +67,16 @@ def get_response_change_ip_if_necessary(url, headers):
         print(f"\nÇok fazla istek hatası: \nurl = {url} \nYeniden ip veriliyor\n")
         while(True):
             if counter :
-                print(f"\n!!!!!!!!! Yeniden Deneme Sınırı Doldu !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n44!!!!!!!!! Yeniden Deneme Sınırı Doldu !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             change_ip()
             counter -= 1
             #---------------------------
             response = requests.request('GET',url, proxies=proxies, headers=headers)
-            if response.status_code == 403:
+            if response.status_code == 403 or response.status_code == 404:
                 continue
             elif response.status_code != 200:
-                print(f"\n!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
+                print(f"\n55!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 return None
             else:
                 # yeni ip çek ve bastır

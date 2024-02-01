@@ -49,7 +49,7 @@ def get_response_change_ip_if_necessary(url, headers):
             #---------------------------
             response = requests.request('GET',url, proxies=proxies, headers=headers)
             if response.status_code == 403 or response.status_code == 404:
-                print("yeniden denniyor")
+                print(f"\n010!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")
                 continue
             elif response.status_code != 200:
                 print(f"\n22!!!!!!!!! Bilinmeyen Hata !!!!!!!!!\n!!!!!!!!! url = {url} !!!!!!!!!\n!!!!!!!!! Status Code = {response.status_code} !!!!!!!!!\n!!!!!!!!! Yeniden ip veriliyor !!!!!!!!!\n")

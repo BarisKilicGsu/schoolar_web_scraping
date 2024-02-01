@@ -13,3 +13,8 @@ CREATE TABLE articles (
     is_processed BOOLEAN DEFAULT FALSE
 );
 
+BEGIN;
+
+ALTER TABLE users ADD COLUMN "is_processed" boolean DEFAULT FALSE;
+
+COMMIT;

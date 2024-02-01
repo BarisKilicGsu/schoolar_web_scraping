@@ -124,3 +124,35 @@ def user_is_exist_with_name(conn, name):
     finally:
         # Bağlantıyı kapat
         cursor.close()
+
+def get_first_unprocessed_user(conn):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+        # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
+        query = sql.SQL("SELECT * FROM users WHERE is_processed = {} LIMIT 1").format( sql.Literal(False))
+        cursor.execute(query)
+        row = cursor.fetchone()
+        # Veritabanı bağlantısını kapat
+        conn.close()
+        # İlk kaydı döndür
+        return row
+    except Exception as e:
+        print("Hata oluştu:", e)
+        return None
+    
+def set_processed_status_for_user(conn, user_id):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+
+        # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
+        query = sql.SQL("UPDATE users SET is_processed = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(user_id))
+        cursor.execute(query)
+        # Veritabanı değişikliklerini kaydet
+        conn.commit()
+        # Veritabanı bağlantısını kapat
+        conn.close()
+        print(f"Kullanıcı ID {user_id} işlenmiş olarak işaretlendi.")
+    except Exception as e:
+        print("Hata oluştu:", e)

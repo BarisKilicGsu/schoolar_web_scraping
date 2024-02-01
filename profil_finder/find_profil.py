@@ -2,13 +2,18 @@ from utils2 import *
 from db2 import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
+from fake_useragent import UserAgent
 
 
 def find_profil_detail(code:str):
     try:
         url = build_parameterized_url("https://scholar.google.com/citations",{"user":code,"hl":"tr","pagesize":10000,"cstart":0} )
-
-        soup = get_response_change_ip_if_necessary(url)
+        headers = { 'User-Agent': UserAgent().random,
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                    'Accept-Language': 'en-US,en;q=0.5',
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    }
+        soup = get_response_change_ip_if_necessary(url,headers)
         if soup == None:
             return None
         
@@ -73,12 +78,22 @@ def parse_gsc_a_tr_class(html):
     return makale_bilgi
 
 
+def main():
 
-conn = postgres_connect("cities","admin","admin","localhost","5433")
+    conn = postgres_connect("cities","admin","admin","localhost","5433")
 
-user_code = ""
-user_id = 1
 
-tr_tags = find_profil_detail(user_code)
-for tr_tag in tr_tags:
-    insert_makale_just_tr_tag(conn , user_id, tr_tag )
+    while True:
+        user = get_first_unprocessed_user(conn)
+        if user:
+            print("İşlenmemiş kullanıcı:", user)
+            tr_tags = find_profil_detail(user[3])
+            for tr_tag in tr_tags:
+                insert_makale_just_tr_tag(conn , user[0], tr_tag )
+            set_processed_status_for_user(conn, user[0])  # İlk sütun ID sütunu varsayıldı
+        else:
+            print("İşlenmemiş kullanıcı bulunamadı.")
+            break
+
+if __name__ == "__main__":
+    main()

@@ -3,6 +3,7 @@ from db2 import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 from fake_useragent import UserAgent
+import sys
 
 
 def find_profil_detail(code:str):
@@ -90,33 +91,49 @@ def main():
 
     conn = postgres_connect("cities","admin","admin","localhost","5433")
 
-    sayac = 0
-    while True:
-        user = get_first_unprocessed_user(conn)
-        if sayac > 30:
-            change_ip()
-            print("ip changed")
-            sayac = 0
-        else:
-            sayac += 1
+    if "--process" in sys.argv:
+        print("Argüman --process ile çalıştırıldı.")
+        while True:
+            article = get_first_unprocessed_article(conn)
+            if article:
+                parsed_article = parse_gsc_a_tr_class(article[2])
+                _, result = update_makale(conn, article[0], parsed_article)
+                if not result:
+                    continue
+                set_processed_status_for_article(conn, article[0])
 
-        if user:
-            print("İşlenmemiş kullanıcı:", user[0])
-            tr_tags, result = find_profil_detail(user[3])
-            if tr_tags == None and result:
-                print(f'kullanici makalesi yok id = {user[0]}')
-                set_processed_status_for_user(conn, user[0])
-                continue
-            if not result:
-                print(f'kullanici makalesi cekilirken hata opldu, not found olarak islendi = {user[0]}')
-                set_not_found_status_for_user(conn, user[0])
-                continue
-            for tr_tag in tr_tags:
-                insert_makale_just_tr_tag(conn , user[0], str(tr_tag) )
-            set_processed_status_for_user(conn, user[0])  # İlk sütun ID sütunu varsayıldı
-        else:
-            print("İşlenmemiş kullanıcı bulunamadı.")
-            break
+            else:
+                print("İşlenmemiş article bulunamadı.")
+                break
+    else:
+        print("Argüman --process ile çalıştırılmadı.")
+        sayac = 0
+        while True:
+            user = get_first_unprocessed_user(conn)
+            if sayac > 30:
+                change_ip()
+                print("ip changed")
+                sayac = 0
+            else:
+                sayac += 1
+
+            if user:
+                print("İşlenmemiş kullanıcı:", user[0])
+                tr_tags, result = find_profil_detail(user[3])
+                if tr_tags == None and result:
+                    print(f'kullanici makalesi yok id = {user[0]}')
+                    set_processed_status_for_user(conn, user[0])
+                    continue
+                if not result:
+                    print(f'kullanici makalesi cekilirken hata opldu, not found olarak islendi = {user[0]}')
+                    set_not_found_status_for_user(conn, user[0])
+                    continue
+                for tr_tag in tr_tags:
+                    insert_makale_just_tr_tag(conn , user[0], str(tr_tag) )
+                set_processed_status_for_user(conn, user[0])  # İlk sütun ID sütunu varsayıldı
+            else:
+                print("İşlenmemiş kullanıcı bulunamadı.")
+                break
 
 if __name__ == "__main__":
     main()

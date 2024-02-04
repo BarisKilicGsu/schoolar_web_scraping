@@ -201,3 +201,67 @@ def set_not_found_status_for_user(conn, user_id):
     except Exception as e:
         print("Hata oluştu 249:", e)
 
+
+
+def get_first_unprocessed_article(conn):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+        # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
+        query = sql.SQL("SELECT * FROM articles WHERE and is_processed = {} LIMIT 1").format( sql.Literal(False))
+        cursor.execute(query)
+        row = cursor.fetchone()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        # İlk kaydı döndür
+        return row
+    except Exception as e:
+        print("Hata oluştu 6453:", e)
+        return None
+    
+def set_processed_status_for_article(conn, article_id):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+
+        # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
+        query = sql.SQL("UPDATE articles SET is_processed = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
+        cursor.execute(query)
+        # Veritabanı değişikliklerini kaydet
+        conn.commit()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        print(f"Article ID {article_id} işlenmiş olarak işaretlendi.")
+    except Exception as e:
+        print("Hata oluştu 125:", e)
+
+
+def update_makale(conn, article_id,article):
+    cursor = conn.cursor()
+    try:
+        query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {} WHERE id = {} RETURNING id").format(
+                            sql.Literal(article["makale_kod"]),
+                            sql.Literal(article["alinti_kod"]),
+                            sql.Literal(int(article["alinti_sayisi"])),
+                            sql.Literal(article["makale_url"]),
+                            sql.Literal(article["alinti_url"]),
+                            sql.Literal(article["makale_ismi"]),
+                            sql.Literal(article_id)
+                        )
+        cursor.execute(query)
+        updated_article_id = cursor.fetchone()
+        cursor.close()
+
+        if updated_article_id:
+            return updated_article_id[0], True
+
+        # Değişiklikleri kaydet
+    except Exception as e:
+        print("Hata 33541:", e)
+        conn.rollback()
+        return None, False
+
+    finally:
+        # Bağlantıyı kapat
+        conn.commit()
+        cursor.close()

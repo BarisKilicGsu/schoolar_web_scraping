@@ -72,6 +72,32 @@ def upsert_makale(conn, user_id,article):
 def insert_makale_just_tr_tag(conn, user_id, tr_tag):
     cursor = conn.cursor()
     try:
+        query = sql.SQL("INSERT INTO articles (user_id, tr_tag) VALUES ({}, {}) RETURNING id").format(
+                            sql.Literal(user_id),
+                            sql.Literal(tr_tag),
+                        )
+        
+        cursor.execute(query)
+        new_article_id = cursor.fetchone()
+        cursor.close()
+
+        if new_article_id:
+            return new_article_id[0], False
+
+        # Değişiklikleri kaydet
+    except Exception as e:
+        print("Hata 5783:", e)
+        conn.rollback()
+        return None
+
+    finally:
+        # Bağlantıyı kapat
+        conn.commit()
+        cursor.close()
+'''
+def insert_makale_just_tr_tag(conn, user_id, tr_tag):
+    cursor = conn.cursor()
+    try:
         query = sql.SQL("SELECT id FROM articles WHERE tr_tag = {} AND user_id = {}").format(sql.Literal(tr_tag),sql.Literal(user_id))
         cursor.execute(query)
         existing_article = cursor.fetchone()
@@ -101,6 +127,7 @@ def insert_makale_just_tr_tag(conn, user_id, tr_tag):
         conn.commit()
         cursor.close()
 
+'''
 
 def user_is_exist_with_name(conn, name):
     
@@ -130,7 +157,7 @@ def get_first_unprocessed_user(conn):
         # Veritabanı bağlantısı oluştur
         cursor = conn.cursor()
         # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-        query = sql.SQL("SELECT * FROM users WHERE is_processed = {} LIMIT 1").format( sql.Literal(False))
+        query = sql.SQL("SELECT * FROM users WHERE is_found = {} and is_processed = {} LIMIT 1").format( sql.Literal(True), sql.Literal(False))
         cursor.execute(query)
         row = cursor.fetchone()
         # Veritabanı bağlantısını kapat
@@ -156,3 +183,21 @@ def set_processed_status_for_user(conn, user_id):
         print(f"Kullanıcı ID {user_id} işlenmiş olarak işaretlendi.")
     except Exception as e:
         print("Hata oluştu 245:", e)
+
+
+def set_not_found_status_for_user(conn, user_id):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+
+        # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
+        query = sql.SQL("UPDATE users SET is_found = {} WHERE id = {}").format(sql.Literal(False),sql.Literal(user_id))
+        cursor.execute(query)
+        # Veritabanı değişikliklerini kaydet
+        conn.commit()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        print(f"Kullanıcı ID {user_id} işlenmiş olarak işaretlendi.")
+    except Exception as e:
+        print("Hata oluştu 249:", e)
+

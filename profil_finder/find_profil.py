@@ -21,18 +21,18 @@ def find_profil_detail(code:str):
         'Connection': 'keep-alive'
         }
 
-        soup = get_response_change_ip_if_necessary(url,headers)
+        soup, result = get_response_change_ip_if_necessary(url,headers)
         if soup == None:
-            return None
+            return None, result
         
         # her makale bilgisinin bulunduğu obje
         tr_tags = soup.find_all('tr', {'class': 'gsc_a_tr'})
         
-        return tr_tags
+        return tr_tags, True
     
     except Exception as e:
         print(f'Hata oluştu 214: {e}')
-        return None
+        return None, False
    
 def parse_gsc_a_tr_class(html):
     makale_bilgi = {
@@ -93,7 +93,7 @@ def main():
     sayac = 0
     while True:
         user = get_first_unprocessed_user(conn)
-        if sayac > 35:
+        if sayac > 30:
             change_ip()
             print("ip changed")
             sayac = 0
@@ -102,7 +102,15 @@ def main():
 
         if user:
             print("İşlenmemiş kullanıcı:", user[0])
-            tr_tags = find_profil_detail(user[3])
+            tr_tags, result = find_profil_detail(user[3])
+            if tr_tags == None and result:
+                print(f'kullanici makalesi yok id = {user[0]}')
+                set_processed_status_for_user(conn, user[0])
+                continue
+            if not result:
+                print(f'kullanici makalesi cekilirken hata opldu, not found olarak islendi = {user[0]}')
+                set_not_found_status_for_user(conn, user[0])
+                continue
             for tr_tag in tr_tags:
                 insert_makale_just_tr_tag(conn , user[0], str(tr_tag) )
             set_processed_status_for_user(conn, user[0])  # İlk sütun ID sütunu varsayıldı

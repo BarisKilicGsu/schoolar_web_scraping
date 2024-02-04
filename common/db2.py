@@ -202,7 +202,6 @@ def set_not_found_status_for_user(conn, user_id):
         print("Hata oluştu 249:", e)
 
 
-
 def get_first_unprocessed_article(conn):
     try:
         # Veritabanı bağlantısı oluştur
@@ -235,6 +234,59 @@ def set_processed_status_for_article(conn, article_id):
     except Exception as e:
         print("Hata oluştu 125:", e)
 
+def set_not_found_status_for_article(conn, article_id):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+
+        # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
+        query = sql.SQL("UPDATE articles SET is_found = {} WHERE id = {}").format(sql.Literal(False),sql.Literal(article_id))
+        cursor.execute(query)
+        # Veritabanı değişikliklerini kaydet
+        conn.commit()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        print(f"Article ID {article_id} bulunamadı olarak işaretlendi.")
+    except Exception as e:
+        print("Hata oluştu 24439:", e)
+
+
+def get_first_unprocessed_2_article(conn, tek_cift):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+        # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
+        query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+        if tek_cift == "tek":
+            query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} and id % 2 = 1 LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+        if tek_cift == "cift":
+            query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} and id % 2 = 0 LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+            
+        cursor.execute(query)
+        row = cursor.fetchone()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        # İlk kaydı döndür
+        return row
+    except Exception as e:
+        print("Hata oluştu 62453:", e)
+        return None
+    
+def set_processed_2_status_for_article(conn, article_id):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+
+        # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
+        query = sql.SQL("UPDATE articles SET is_processed_2 = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
+        cursor.execute(query)
+        # Veritabanı değişikliklerini kaydet
+        conn.commit()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        print(f"Article ID {article_id} işlenmiş olarak işaretlendi.")
+    except Exception as e:
+        print("Hata oluştu 1235:", e)
 
 def update_makale(conn, article_id, article):
     cursor = conn.cursor()
@@ -261,6 +313,34 @@ def update_makale(conn, article_id, article):
         print("Hata 33541:", e)
         conn.rollback()
         return None, False
+
+    finally:
+        # Bağlantıyı kapat
+        conn.commit()
+        cursor.close()
+
+
+def insert_article_citing_just_div_tag(conn, cited_article_id, cited_user_id, div_tag):
+    cursor = conn.cursor()
+    try:
+        query = sql.SQL("INSERT INTO articles_citing (cited_article_id, cited_user_id, div_tag) VALUES ({}, {}, {}) RETURNING id").format(
+                            sql.Literal(cited_article_id),
+                            sql.Literal(cited_user_id),
+                            sql.Literal(div_tag),
+                        )
+        
+        cursor.execute(query)
+        new_article_id = cursor.fetchone()
+        cursor.close()
+
+        if new_article_id:
+            return new_article_id[0], False
+
+        # Değişiklikleri kaydet
+    except Exception as e:
+        print("Hata 578313:", e)
+        conn.rollback()
+        return None
 
     finally:
         # Bağlantıyı kapat

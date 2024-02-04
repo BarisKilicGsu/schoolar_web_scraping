@@ -1,10 +1,10 @@
-from utils2 import *
-from db2 import *
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 from fake_useragent import UserAgent
-import sys
-
+import sys, os
+sys.path.insert(1, "/".join(os.path.realpath(__file__).split("/")[0:-2]) + "/common")
+from utils2 import *
+from db2 import *
 
 def find_profil_detail(code:str):
     try:

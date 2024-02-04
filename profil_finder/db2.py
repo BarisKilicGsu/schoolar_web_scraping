@@ -208,7 +208,7 @@ def get_first_unprocessed_article(conn):
         # Veritabanı bağlantısı oluştur
         cursor = conn.cursor()
         # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-        query = sql.SQL("SELECT * FROM articles WHERE and is_processed = {} LIMIT 1").format( sql.Literal(False))
+        query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} LIMIT 1").format( sql.Literal(False))
         cursor.execute(query)
         row = cursor.fetchone()
         # Veritabanı bağlantısını kapat
@@ -236,10 +236,11 @@ def set_processed_status_for_article(conn, article_id):
         print("Hata oluştu 125:", e)
 
 
-def update_makale(conn, article_id,article):
+def update_makale(conn, article_id, article):
     cursor = conn.cursor()
+
     try:
-        query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {} WHERE id = {} RETURNING id").format(
+        query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {}, name = {} WHERE id = {} RETURNING id").format(
                             sql.Literal(article["makale_kod"]),
                             sql.Literal(article["alinti_kod"]),
                             sql.Literal(int(article["alinti_sayisi"])),

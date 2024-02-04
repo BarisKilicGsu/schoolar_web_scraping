@@ -97,9 +97,10 @@ def main():
             article = get_first_unprocessed_article(conn)
             if article:
                 parsed_article = parse_gsc_a_tr_class(article[2])
+                print(article[0])
                 _, result = update_makale(conn, article[0], parsed_article)
                 if not result:
-                    continue
+                    break
                 set_processed_status_for_article(conn, article[0])
 
             else:

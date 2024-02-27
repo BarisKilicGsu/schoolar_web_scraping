@@ -96,7 +96,7 @@ def main():
         while True:
             article = get_first_unprocessed_article(conn)
             if article:
-                parsed_article = parse_gsc_a_tr_class(article[2])
+                parsed_article = parse_gsc_a_tr_class(article[1])
                 print(article[0])
                 _, result = update_makale(conn, article[0], parsed_article)
                 if not result:

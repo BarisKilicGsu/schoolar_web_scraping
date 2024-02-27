@@ -25,8 +25,8 @@ def find_article_citing(code:str, size:int):
         }
 
         all_div_tags = []
-        for i in range(0, size + 10, 10):
-            url = build_parameterized_url("https://scholar.google.com/scholar",{"cites":code,"hl":"tr","start":i,"oi":"bibs"} )
+        for i in range(0, size + 20, 20):
+            url = build_parameterized_url("https://scholar.google.com/scholar",{"cites":code,"hl":"tr","start":i,"oi":"bibs","num":20} )
 
             soup, result = get_response_change_ip_if_necessary(url,headers)
             if soup == None:

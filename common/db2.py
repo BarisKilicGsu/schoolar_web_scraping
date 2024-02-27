@@ -272,6 +272,31 @@ def get_first_unprocessed_2_article(conn, tek_cift):
         print("Hata oluştu 62453:", e)
         return None
     
+
+def get_first_unprocessed_2_articl_by_uni(conn, uni):
+    try:
+        # Veritabanı bağlantısı oluştur
+        cursor = conn.cursor()
+        # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
+        query = sql.SQL(
+            """SELECT articles.* 
+            FROM articles 
+            JOIN user_articles ON articles.id = user_articles.article_id
+            JOIN users ON user_articles.user_id = users.id
+            WHERE articles.is_found = {} and articles.is_processed = {} and articles.is_processed_2 = {} and users.university = {}
+            LIMIT 1"""
+            ).format( sql.Literal(True), sql.Literal(True), sql.Literal(False),sql.Literal(uni) )
+      
+        cursor.execute(query)
+        row = cursor.fetchone()
+        # Veritabanı bağlantısını kapat
+        cursor.close()
+        # İlk kaydı döndür
+        return row
+    except Exception as e:
+        print("Hata oluştu 62453:", e)
+        return None
+    
 def set_processed_2_status_for_article(conn, article_id):
     try:
         # Veritabanı bağlantısı oluştur
@@ -320,12 +345,11 @@ def update_makale(conn, article_id, article):
         cursor.close()
 
 
-def insert_article_citing_just_div_tag(conn, cited_article_id, cited_user_id, div_tag):
+def insert_article_citing_just_div_tag(conn, cited_article_id, div_tag):
     cursor = conn.cursor()
     try:
-        query = sql.SQL("INSERT INTO articles_citing (cited_article_id, cited_user_id, div_tag) VALUES ({}, {}, {}) RETURNING id").format(
+        query = sql.SQL("INSERT INTO articles_citing (cited_article_id, div_tag) VALUES ({}, {}) RETURNING id").format(
                             sql.Literal(cited_article_id),
-                            sql.Literal(cited_user_id),
                             sql.Literal(div_tag),
                         )
         

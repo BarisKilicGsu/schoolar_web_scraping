@@ -190,11 +190,9 @@ def get_response_change_ip_if_necessary_with_selenium(driver ,url):
                 print("Exiting due to user input.")
                 return None, False
             driver.get(url)
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
+    
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
             
-
-
-
     return soup, True
 
 

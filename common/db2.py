@@ -207,7 +207,7 @@ def get_first_unprocessed_article(conn):
         # Veritabanı bağlantısı oluştur
         cursor = conn.cursor()
         # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-        query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} LIMIT 1").format( sql.Literal(False))
+        query = sql.SQL("SELECT * FROM articles WHERE is_found = {} and is_processed = {} LIMIT 1").format( sql.Literal(True), sql.Literal(False))
         cursor.execute(query)
         row = cursor.fetchone()
         # Veritabanı bağlantısını kapat
@@ -256,11 +256,11 @@ def get_first_unprocessed_2_article(conn, tek_cift):
         # Veritabanı bağlantısı oluştur
         cursor = conn.cursor()
         # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-        query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+        query = sql.SQL("SELECT * FROM articles WHERE is_found = {} and is_processed = {} and is_processed_2 = {} LIMIT 1").format( sql.Literal(True), sql.Literal(True), sql.Literal(False))
         if tek_cift == "tek":
-            query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} and id % 2 = 1 LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+            query = sql.SQL("SELECT * FROM articles WHERE is_found = {} and is_processed = {} and is_processed_2 = {} and id % 2 = 1 LIMIT 1").format( sql.Literal(True), sql.Literal(True), sql.Literal(False))
         if tek_cift == "cift":
-            query = sql.SQL("SELECT * FROM articles WHERE is_processed = {} and is_processed_2 = {} and id % 2 = 0 LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+            query = sql.SQL("SELECT * FROM articles WHERE is_found = {} and is_processed = {} and is_processed_2 = {} and id % 2 = 0 LIMIT 1").format( sql.Literal(True), sql.Literal(True), sql.Literal(False))
             
         cursor.execute(query)
         row = cursor.fetchone()

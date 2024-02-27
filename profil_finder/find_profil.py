@@ -111,7 +111,7 @@ def main():
         sayac = 0
         while True:
             user = get_first_unprocessed_user(conn)
-            if sayac > 30:
+            if sayac > 4:
                 change_ip()
                 print("ip changed")
                 sayac = 0

@@ -21,8 +21,8 @@ def find_article_citing(code:str, size:int):
         }
 
         all_div_tags = []
-        for i in range(0, size, 10):
-            url = build_parameterized_url("https://scholar.google.com/scholar",{"cites":code,"hl":"tr","start":i,"oi":"bibs"} )
+        for i in range(0, size, 20):
+            url = build_parameterized_url("https://scholar.google.com/scholar",{"cites":code,"hl":"tr","start":i,"oi":"bibs","num":20} )
 
             soup, result = get_response_change_ip_if_necessary(url,headers)
             if soup == None:
@@ -72,33 +72,29 @@ def parse_gsc_a_tr_class(html):
 
 def main():
     driver = create_tor_driver()
-    print("Kullanım: python program.py <tek veya cift>")
-    if len(sys.argv) != 2:
-        print("Kullanım: python program.py <tek veya cift>")
-    else:
-        tek_cift = sys.argv[1]
-        conn = postgres_connect("cities","admin","admin","localhost","5433")
-        print(tek_cift)
-        while True:
-            article = get_first_unprocessed_2_article(conn, tek_cift )
-           
+    conn = postgres_connect("cities","admin","admin","localhost","5433")
 
-            if article:
-                print("İşlenmemiş article:", article[0])
-                if int(article[6]) == 0:
-                    set_processed_2_status_for_article(conn, article[0])
-                    continue
-                div_tags, result = find_article_citing_2(article[5], article[6], driver)
-                if not result:
-                    print(f'kullanici makalesi cekilirken hata opldu, not found olarak islendi = {article[0]}')
-                    set_not_found_status_for_article(conn, article[0])
-                    continue
-                for div_tag in div_tags:
-                    insert_article_citing_just_div_tag(conn , article[0], article[1], str(div_tag) )
-                set_processed_2_status_for_article(conn, article[0])  
-            else:
-                print("İşlenmemiş article bulunamadı.")
-                break
+    while True:
+
+        article = get_first_unprocessed_2_articl_by_uni(conn, "GALATASARAY ÜNİVERSİTESİ")
+
+        if article:
+            print("İşlenmemiş article:", article[0])
+            if int(article[5]) == 0:
+                set_processed_2_status_for_article(conn, article[0])
+                continue
+            div_tags, result = find_article_citing_2(article[4], article[5], driver)
+            if not result:
+                print(f'kullanici makalesi cekilirken hata opldu, not found olarak islendi = {article[0]}')
+                set_not_found_status_for_article(conn, article[0])
+                continue
+            for div_tag in div_tags:
+                insert_article_citing_just_div_tag(conn , article[0], str(div_tag) )
+            set_processed_2_status_for_article(conn, article[0])  
+        
+        else:
+            print("İşlenmemiş article bulunamadı.")
+            break
 
 if __name__ == "__main__":
     main()

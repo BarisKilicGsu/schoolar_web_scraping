@@ -25,7 +25,7 @@ def upsert_makale(conn, user_id,article):
         cursor.execute(query)
         existing_article = cursor.fetchone()
         if existing_article:
-            query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {} WHERE name = {} AND user_id = {} RETURNING id").format(
+            query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {}, updated_at = CURRENT_TIMESTAMP WHERE name = {} AND user_id = {} RETURNING id").format(
                                 sql.Literal(article["makale_kod"]),
                                 sql.Literal(article["alinti_kod"]),
                                 sql.Literal(int(article["alinti_sayisi"])),
@@ -157,7 +157,7 @@ def get_first_unprocessed_user(conn):
         # Veritabanı bağlantısı oluştur
         cursor = conn.cursor()
         # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-        query = sql.SQL("SELECT * FROM users WHERE is_found = {} and is_processed = {} LIMIT 1").format( sql.Literal(True), sql.Literal(False))
+        query = sql.SQL("SELECT * FROM users WHERE is_found = {} and is_processed = {} and created_at > '2024-03-10 08:24:10.48032+00' LIMIT 1").format( sql.Literal(True), sql.Literal(False))
         cursor.execute(query)
         row = cursor.fetchone()
         # Veritabanı bağlantısını kapat
@@ -174,7 +174,7 @@ def set_processed_status_for_user(conn, user_id):
         cursor = conn.cursor()
 
         # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
-        query = sql.SQL("UPDATE users SET is_processed = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(user_id))
+        query = sql.SQL("UPDATE users SET is_processed = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {}").format(sql.Literal(True),sql.Literal(user_id))
         cursor.execute(query)
         # Veritabanı değişikliklerini kaydet
         conn.commit()
@@ -191,7 +191,7 @@ def set_not_found_status_for_user(conn, user_id):
         cursor = conn.cursor()
 
         # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
-        query = sql.SQL("UPDATE users SET is_found = {} WHERE id = {}").format(sql.Literal(False),sql.Literal(user_id))
+        query = sql.SQL("UPDATE users SET is_found = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {}").format(sql.Literal(False),sql.Literal(user_id))
         cursor.execute(query)
         # Veritabanı değişikliklerini kaydet
         conn.commit()
@@ -224,7 +224,7 @@ def set_processed_status_for_article(conn, article_id):
         cursor = conn.cursor()
 
         # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
-        query = sql.SQL("UPDATE articles SET is_processed = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
+        query = sql.SQL("UPDATE articles SET is_processed = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
         cursor.execute(query)
         # Veritabanı değişikliklerini kaydet
         conn.commit()
@@ -240,7 +240,7 @@ def set_not_found_status_for_article(conn, article_id):
         cursor = conn.cursor()
 
         # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
-        query = sql.SQL("UPDATE articles SET is_found = {} WHERE id = {}").format(sql.Literal(False),sql.Literal(article_id))
+        query = sql.SQL("UPDATE articles SET is_found = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {}").format(sql.Literal(False),sql.Literal(article_id))
         cursor.execute(query)
         # Veritabanı değişikliklerini kaydet
         conn.commit()
@@ -283,9 +283,9 @@ def get_first_unprocessed_2_articl_by_uni(conn, uni):
             FROM articles 
             JOIN user_articles ON articles.id = user_articles.article_id
             JOIN users ON user_articles.user_id = users.id
-            WHERE articles.is_found = {} and articles.is_processed = {} and articles.is_processed_2 = {} and users.university = {}
+            WHERE articles.is_found = {} and articles.is_processed_2 = {} and users.university = {}
             LIMIT 1"""
-            ).format( sql.Literal(True), sql.Literal(True), sql.Literal(False),sql.Literal(uni) )
+            ).format( sql.Literal(True), sql.Literal(False),sql.Literal(uni) )
       
         cursor.execute(query)
         row = cursor.fetchone()
@@ -303,7 +303,7 @@ def set_processed_2_status_for_article(conn, article_id):
         cursor = conn.cursor()
 
         # Belirli bir id ile kullanıcıyı işlenmiş olarak işaretle
-        query = sql.SQL("UPDATE articles SET is_processed_2 = {} WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
+        query = sql.SQL("UPDATE articles SET is_processed_2 = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {}").format(sql.Literal(True),sql.Literal(article_id))
         cursor.execute(query)
         # Veritabanı değişikliklerini kaydet
         conn.commit()
@@ -317,7 +317,7 @@ def update_makale(conn, article_id, article):
     cursor = conn.cursor()
 
     try:
-        query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {}, name = {} WHERE id = {} RETURNING id").format(
+        query = sql.SQL("UPDATE articles SET makale_kod = {}, alinti_kod = {}, alinti_sayisi = {}, makale_url = {}, alinti_url = {}, name = {}, updated_at = CURRENT_TIMESTAMP WHERE id = {} RETURNING id").format(
                             sql.Literal(article["makale_kod"]),
                             sql.Literal(article["alinti_kod"]),
                             sql.Literal(int(article["alinti_sayisi"])),

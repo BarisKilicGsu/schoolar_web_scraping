@@ -69,14 +69,14 @@ conn = postgres_connect("cities","admin","admin","localhost","5433")
 
 cursor = conn.cursor()
 # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {}").format( sql.Literal(False))
+query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {} and created_at > '2024-03-10 08:24:10.48032+00'").format( sql.Literal(False))
 cursor.execute(query)
 users = cursor.fetchall()
 cursor.close()
 
 for user in users:
     profil_detay_tag = user[7]
-
+    print(user[0])
     if profil_detay_tag == 'None':
         # işlendi olarak işaretler
         set_processed_status_for_user(conn,user[0])
@@ -85,7 +85,6 @@ for user in users:
     matching_text = extract_edu_domains(profil_detay_tag)
     birlesik_string = ', '.join(matching_text)
     set_uni_user(conn, user[0],birlesik_string)
-    
     #print(f'user id : {user[0]}  matchs : {matching_text}')
   
     #set_uni_user(conn, user[0], unis)

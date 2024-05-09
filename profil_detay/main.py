@@ -94,7 +94,7 @@ conn = postgres_connect("cities","admin","admin","localhost","5433")
 
 cursor = conn.cursor()
 # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {}").format( sql.Literal(False))
+query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {} and created_at > '2024-03-10 08:24:10.48032+00'").format( sql.Literal(False))
 cursor.execute(query)
 users = cursor.fetchall()
 cursor.close()
@@ -127,7 +127,6 @@ for user in users:
     print(f'user id : {user[0]}  div_tag : {result}  eslesmeler : {eslesmeler}')
     unis = ", ".join(eslesmeler)
     set_uni_user(conn, user[0], unis)
-    
 
 
 

@@ -8,6 +8,8 @@ from stem.control import Controller
 from fake_useragent import UserAgent
 from difflib import get_close_matches
 import re
+from playsound import playsound
+ses_dosyasi = "uyari_ses.mp3"
 
 
 from selenium import webdriver

@@ -1,2 +1,8 @@
 files/all.json
+files/gsu.json
 __pycache__
+.gephi
+.graphml
+.png
+.json.txt
+new_user_finder/isimler.json

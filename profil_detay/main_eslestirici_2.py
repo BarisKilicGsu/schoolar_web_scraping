@@ -119,7 +119,7 @@ universities_list = list(universite_ad_soyad.keys())
 
 cursor = conn.cursor()
 # Users tablosundan is_processed değeri FALSE olan ilk kaydı çek
-query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {} and university != {} and university = {}").format( sql.Literal(False),sql.Literal('None'),sql.Literal("BOĞAZİÇİ ÜNİVERSİTESİ"))
+query = sql.SQL("SELECT * FROM users WHERE is_processed_2 = {} and university != {}").format( sql.Literal(False),sql.Literal('None'))
 cursor.execute(query)
 users = cursor.fetchall()
 cursor.close()
@@ -133,7 +133,7 @@ for user in users:
     isim = user[1]
     isim = remove_abbreviations_and_parentheses(isim)
 
-    üni_eslesme = find_similar_string(universities_list, üni, 0.8)
+    üni_eslesme = find_similar_string(universities_list, üni, 1)
     if üni_eslesme == 'None':
         #eslesme bulunamadı 
         print(f'Bulunamadı ------- id : {user[0]}  --- üni = {üni} --- isim = {user[1]} ---  link : {user[3]}')
@@ -141,7 +141,7 @@ for user in users:
         count += 1
         continue
 
-    matched_name = find_similar_string(universite_ad_soyad[üni_eslesme], isim, 0.8)
+    matched_name = find_similar_string(universite_ad_soyad[üni_eslesme], isim, 0.9)
     if matched_name == 'None':
         print(f'Bulunamadı------- id : {user[0]}  üni = {üni} --- isim = {user[1]}  ---  link : {user[3]}')
         set_processed_status_for_user(conn, user[0])
